@@ -37,6 +37,7 @@ int main(void)
     fgets(input, MAX_INPUT_SIZE, stdin);
 
     unsigned char sha[SHA256_DIGEST_LENGTH];
+    SHA256(input, strlen(input), sha);
 
     puts("The SHA256 code of");
     printf("\"%s\"\n", input);
