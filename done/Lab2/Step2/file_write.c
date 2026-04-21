@@ -3,10 +3,10 @@
 // max size for a name
 #define NAME_MAX_SIZE 1024
 
-typedef FILE* myFile;
+typedef int myFile;
 
 myFile my_fopen(const char* filename, const char* mode){
-    return fopen(filename, mode);
+    return open(filename, mode);
 }
 
 int my_fclose(myFile file){
