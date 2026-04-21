@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 // max size for a name
 #define NAME_MAX_SIZE 1024
@@ -7,15 +9,19 @@
 typedef int myFile;
 
 myFile my_fopen(const char* filename, const char* mode){
-    return open(filename, mode);
+    if (strcmp(mode, "w") == 0)
+        return open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    return -1; 
 }
 
 int my_fclose(myFile file){
-    return fclose(file);
+    return close(file);
 }
 
 void my_write(myFile output, const char* name, unsigned int age){
-    fprintf(output,"%s %d\n", name, age); 
+    char buffer[NAME_MAX_SIZE + 16];
+    int n = snparintf(buffer, 1040, "%s %u\n", name, age); 
+    write(output, buffer, n);
 }
 
 int main(void){
