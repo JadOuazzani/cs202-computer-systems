@@ -1,0 +1,11 @@
+*.o
+.depend
+
+data.dat
+file_write
+file_read
+file_delete
+udp-test-client
+udp-test-server
+tcp-test-client
+tcp-test-server
