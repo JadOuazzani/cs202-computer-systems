@@ -61,7 +61,9 @@ selection_sort
 *.o
 *.out
 
-# exécutables et données de test du Lab 2
-done/Lab2/Step2/file_write
-done/Lab2/Step2/file_read
-done/Lab2/Step2/data.dat
+# Binaires du Lab2
+file_write
+file_read
+
+# Fichiers de données générés
+*.dat

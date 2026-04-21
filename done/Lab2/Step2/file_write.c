@@ -4,21 +4,19 @@
 // max size for a name
 #define NAME_MAX_SIZE 1024
 
-// ---- Step 2.1.1: wrappers ----
 typedef FILE* myFile;
 
-myFile my_fopen(const char* filename, const char* mode) {
+myFile my_fopen(const char* filename, const char* mode){
     return fopen(filename, mode);
 }
 
-int my_fclose(myFile f) {
-    return fclose(f);
+int my_fclose(myFile file){
+    return fclose(file);
 }
 
-int my_write(myFile output, const char* name, unsigned int age) {
-    return fprintf(output, "%s %u\n", name, age);
+void my_write(myFile output, const char* name, unsigned int age){
+    fprintf(output,"%s %d\n", name, age); 
 }
-// -------------------------------
 
 int main(void){
     const char* filename = "data.dat"; // hard-coded filename
