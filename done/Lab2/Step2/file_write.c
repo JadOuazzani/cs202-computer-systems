@@ -2,10 +2,25 @@
 #include <string.h>
 // max size for a name
 #define NAME_MAX_SIZE 1024
+
+typedef FILE* myFile;
+
+myFile my_fopen(const char* filename, const char* mode){
+    return fopen(filename, mode);
+}
+
+int my_fclose(myFile file){
+    return fclose(file);
+}
+
+void my_write(myFile output, const char* name, unsigned int age){
+    fprintf(output,"%s %d\n", name, age); 
+}
+
 int main(void){
     const char* filename = "data.dat"; // hard-coded filename
     // Open file
-    FILE* output = fopen(filename, "w");
+    myFile output = my_fopen(filename, "w");
     if (output == NULL) {
         fprintf(stderr, "Error: cannot open file \"%s\" in write mode!\n", filename);
         return 1;
@@ -34,12 +49,12 @@ int main(void){
             } else {
                 getc(stdin); // gets the residual \n
                 // write to file
-                fprintf(output,"%s %d\n", name, age);
+                my_write(output, name, age);
             }
         }
     }
     // purism: end-of-line to properly end the question
     putchar('\n');
-    fclose(output); // don't forget to close file
+    my_fclose(output); // don't forget to close file
     return 0;
 }

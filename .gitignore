@@ -60,3 +60,10 @@ sum_odd
 selection_sort
 *.o
 *.out
+
+# Binaires du Lab2
+file_write
+file_read
+
+# Fichiers de données générés
+*.dat
