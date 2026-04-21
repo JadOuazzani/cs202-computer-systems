@@ -7,3 +7,5 @@ sha: sha.c
 
 clean:
 	rm -f sha
+
+
