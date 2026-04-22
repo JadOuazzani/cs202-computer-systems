@@ -56,6 +56,7 @@ int main(void)
         fprintf(stderr, "Error: cannot open file \"%s\" in read mode!\n", filename);
         return 1;
     }
+    printf("File descriptor : %d \n", input);
 
     // Frame top line
     printf("+-----------------+-----+\n");
