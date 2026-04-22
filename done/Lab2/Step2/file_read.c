@@ -41,8 +41,8 @@ int my_read(myFile input, char* name, unsigned int* p_age) {
     int size_lign =  end_lign - buffer + 1;
 
     lseek(input, offset + size_lign, SEEK_SET);
-    if (sscanf(buffer, "%1023s %u", name, p_age) != 2) return -1;
-    return 0;     
+    return sscanf(buffer, "%1023s %u", name, p_age) ;
+     
 }
 // -------------------------------
 
@@ -52,7 +52,7 @@ int main(void)
 
     // Open file
     myFile input = my_fopen(filename, "r");
-    if (input == NULL) {
+    if (input == -1) {
         fprintf(stderr, "Error: cannot open file \"%s\" in read mode!\n", filename);
         return 1;
     }
@@ -67,19 +67,23 @@ int main(void)
     double total = 0.0; // notice 'double', to avoid integer division
 
     // loop on name+age reading from file
-    do {
+    while (1) {
         char name[NAME_DISPLAY_SIZE+1] = "";
         unsigned int age = 0;
-        if (my_read(input, name, &age) == 2) {
-            ++nb;             // one more record
-            total += age;     // for later average
-            // updates stats
-            if (age_min > age) age_min = age;
-            if (age_max < age) age_max = age;
-            // prints: - sign is for left alignment
-            printf("| %-" STR(NAME_DISPLAY_SIZE) "s | %3d |\n", name, age);
+        if (my_read(input, name, &age) != 2) {
+            break;
         }
-    } while (! feof(input));
+        ++nb;             // one more record
+        total += age;     // for later average
+        // updates stats
+        if (age_min > age) age_min = age;
+        if (age_max < age) age_max = age;
+        // prints: - sign is for left alignment
+        printf("| %-" STR(NAME_DISPLAY_SIZE) "s | %3d |\n", name, age);
+        
+        puts("Press enter to continue");
+        getchar(); 
+    } 
 
     my_fclose(input); // don't forget to close file
 
