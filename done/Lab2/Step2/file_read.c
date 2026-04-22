@@ -1,26 +1,48 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 // max display size for names
 #define NAME_DISPLAY_SIZE 15
+#define NAME_MAX_SIZE 1024
+
 
 // A bit of tricks
 #define SSTR(X) #X
 #define STR(X) SSTR(X)
 
 // ---- Step 2.1.1: wrappers ----
-typedef FILE* myFile;
+typedef int myFile;
 
 myFile my_fopen(const char* filename, const char* mode) {
-    return fopen(filename, mode);
+    if (strcmp(mode, "r") == 0) {
+        return open(filename, O_RDONLY);
+    }
+    return -1; 
 }
 
 int my_fclose(myFile f) {
-    return fclose(f);
+    return close(f);
 }
 
 int my_read(myFile input, char* name, unsigned int* p_age) {
-    return fscanf(input, "%15s %u", name, p_age);
+    size_t BUFFER_SIZE = NAME_MAX_SIZE + 6;
+    char buffer[BUFFER_SIZE];
+    
+    off_t offset = lseek(input, 0, SEEK_CUR);
+    ssize_t nb_lu = read(input, buffer, BUFFER_SIZE - 1);
+    if (nb_lu == -1) return -1 ; 
+    buffer[nb_lu] = '\0';
+    
+    char* end_lign = memchr(buffer, '\n', nb_lu);
+    if (end_lign == NULL) return -1; 
+
+    int size_lign =  end_lign - buffer + 1;
+
+    lseek(input, offset + size_lign, SEEK_SET);
+    if (sscanf(buffer, "%1023s %u", name, p_age) != 2) return -1;
+    return 0;     
 }
 // -------------------------------
 
