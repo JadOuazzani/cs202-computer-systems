@@ -129,9 +129,11 @@ ssize_t udp_send(int socket, const char* response, size_t response_len,
 // ======================================================================
 int get_tcp_socket(void)
 {
-    const int fd = -1; // to be modified
+    const int fd = socket(AF_INET, SOCK_STREAM, 0); 
 
-    // ...to be continued...
+    if (fd < 0) {
+       return ERR_NETWORK;  
+    }
 
     return fd;
 }
@@ -142,17 +144,25 @@ int tcp_server_init(const char* ip, uint16_t port)
     M_REQUIRE_NON_NULL(ip);
 
     // Create a socket
-    const int socket = -1; // to be modified
+    const int socket = get_tcp_socket(); 
     if (socket < 0) {
         perror("Error opening UDP socket");
         return ERR_NETWORK;
     }
 
     // Bind the socket to the address
-    // ...to be continued...
+    if (bind_server(socket, ip, port) < 0) {
+        perror("Error binding UDP socket");
+        close(socket); 
+        return ERR_NETWORK; 
+    }
 
     // Start listening for incoming connections
-    // ...to be continued...
+    if (listen(socket, 5) != 0 ) {
+        perror("Error listenning");
+        close(socket); 
+        return ERR_NETWORK; 
+    };
 
     return socket;
 }
@@ -161,9 +171,9 @@ int tcp_server_init(const char* ip, uint16_t port)
 int tcp_accept(int passive_socket,
                  struct sockaddr_in* cli_addr)
 {
-    M_REQUIRE_NON_NULL(cli_addr);
-
-    return -1; // to be modified
+//  M_REQUIRE_NON_NULL(cli_addr);
+    socklen_t addr_len = sizeof(*cli_addr);
+    return cli_addr == NULL ? accept(passive_socket, NULL, NULL) : accept(passive_socket, (struct sockaddr*) cli_addr, &addr_len); 
 }
 
 // ======================================================================
@@ -171,7 +181,11 @@ ssize_t tcp_read(int socket, char* buf, size_t buflen)
 {
     M_REQUIRE_NON_NULL(buf);
 
-    const ssize_t res = -1; // to be modified
+    if (socket < 0) {
+        return ERR_INVALID_ARGUMENT; 
+    }
+
+    const ssize_t res = recv(socket, buf, buflen, 0); 
 
     return res < 0 ? ERR_NETWORK : res;
 }
@@ -181,7 +195,10 @@ ssize_t tcp_send(int socket, const char* response, size_t response_len)
 {
     M_REQUIRE_NON_NULL(response);
 
-    const ssize_t res = -1; // to be modified
+    if (socket < 0) {
+        return ERR_INVALID_ARGUMENT; 
+    }
+    const ssize_t res = send(socket, response, response_len, 0);
 
     return res < 0 ? ERR_NETWORK : res;
 }
