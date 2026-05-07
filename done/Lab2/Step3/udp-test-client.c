@@ -2,29 +2,38 @@
 #include "socket_layer.h"
 #include <netinet/in.h>
 #include <string.h>
+#include <sys/time.h>  
+#include <time.h> 
 #include <unistd.h>
 
+typedef struct {
+    int id;
+    long sec;
+    long usec; 
+} Probe; 
+
 int main (void){
-    unsigned int val; 
-    printf("What int value do you want to send? "); 
-    scanf("%u", &val);
-
     int fd = get_udp_socket(5);
-
     struct sockaddr_in server_addr = {0}; 
-    get_server_addr(CS202_DEFAULT_IP, CS202_DEFAULT_PORT, &server_addr); 
+    get_server_addr(CS202_DEFAULT_IP, CS202_DEFAULT_PORT, &server_addr);
+    printf("Connected to %s:%u\n", CS202_DEFAULT_IP, CS202_DEFAULT_PORT);
 
-    char msg[64];
-    snprintf(msg, sizeof(msg), "%u", val);
+    int id = 0; 
+    while(1){
+        struct timeval tv = {0};
+        gettimeofday(&tv, NULL); 
 
-    printf("Sending message to 127.0.0.1:1234: %u\n", val); 
-    udp_send(fd, msg, strlen(msg), &server_addr); 
-
-    char response[64] = {0}; 
-    struct sockaddr_in from_addr;
-    udp_read(fd, response, sizeof(response)-1, &from_addr); 
+        Probe probe; 
+        probe.id   = id;
+        probe.sec  = tv.tv_sec;
+        probe.usec = tv.tv_usec;
     
-    printf("Received response: %s\n", response); 
+        udp_send(fd, (char*)&probe, sizeof(Probe), &server_addr); 
+        printf("Sent Probe %d.\n", id++);
+        
+        usleep(5000);
+    }
+    
     close(fd);
     return 0;
 }

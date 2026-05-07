@@ -1,0 +1,5 @@
+error.o: error.c
+get_file.o: get_file.c socket_layer.h error.h
+send_file.o: send_file.c error.h socket_layer.h
+socket_layer.o: socket_layer.c socket_layer.h error.h
+util.o: util.c

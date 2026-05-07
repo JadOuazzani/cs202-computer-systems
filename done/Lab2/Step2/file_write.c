@@ -20,7 +20,7 @@ int my_fclose(myFile file){
 
 void my_write(myFile output, const char* name, unsigned int age){
     char buffer[NAME_MAX_SIZE + 16];
-    int n = snparintf(buffer, 1040, "%s %u\n", name, age); 
+    int n = snprintf(buffer, 1040, "%s %u\n", name, age); 
     write(output, buffer, n);
 }
 

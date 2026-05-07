@@ -28,7 +28,7 @@ double xlog2x(double x) {
 // ==================================================
 double entropy(double* proba, size_t size)
 {
-  double sum = 0.0;
+  double sum = 0;
   for (size_t i = 0; i < size; ++i) {
     sum -= xlog2x(proba[i]);
   }
@@ -44,7 +44,7 @@ void freq2proba(unsigned int* freq, double* proba, size_t size)
   }
  
   for (size_t i = 0; i < size; ++i) {
-    proba[i] = (double)freq[i] / total_mass;
+    proba[i] = total_mass == 0 ? 0 : (freq[i] / (float) total_mass);
   }
 }
 
