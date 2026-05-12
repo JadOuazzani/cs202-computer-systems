@@ -19,9 +19,11 @@ int main (void){
         fprintf(stderr, "Error intializing server\n");
         return 1;
     }
-    printf("Server listening on %s:%u\n", CS202_DEFAULT_IP, CS202_DEFAULT_PORT); 
 
     struct timeval start = {0};
+
+    printf("Server listening on %s:%u\n", CS202_DEFAULT_IP, CS202_DEFAULT_PORT); 
+
     gettimeofday(&start, NULL);
     struct timeval end = {0};
     gettimeofday(&end, NULL);
