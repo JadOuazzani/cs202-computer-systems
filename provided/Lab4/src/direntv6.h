@@ -13,14 +13,14 @@
 #include "filev6.h"
 #include "mount.h"
 
-#pragma once
-
-
+/**
+ * @brief data structure to keep track of directory traversals
+ */
 struct directory_reader {
-    struct filev6 fv6;  // node of the directory
-    struct direntv6 dirs[DIRENTRIES_PER_SECTOR];
-    int cur;
-    int last;
+    struct filev6 fv6;                           // node of the directory
+    struct direntv6 dirs[DIRENTRIES_PER_SECTOR]; // list of children
+    int cur;                                     // position of the last child read
+    int last;                                    // position of the first invalid child
 };
 
 /**
@@ -30,7 +30,7 @@ struct directory_reader {
  * @param d the directory reader (OUT)
  * @return 0 on success; <0 on errror
  */
-int direntv6_opendir(const struct unix_filesystem *u, uint16_t inr, struct directory_reader *d);
+int direntv6_opendir(struct unix_filesystem *u, uint16_t inr, struct directory_reader *d);
 
 /**
  * @brief return the next directory entry.
@@ -48,7 +48,7 @@ int direntv6_readdir(struct directory_reader *d, char *name, uint16_t *child_inr
  * @param prefix the prefix to the subtree
  * @return 0 on success; <0 on error
  */
-int direntv6_print_tree(const struct unix_filesystem *u, uint16_t inr, const char *prefix);
+int direntv6_print_tree(struct unix_filesystem *u, uint16_t inr, const char *prefix);
 
 /**
  * @brief get the inode number for the given path
@@ -57,7 +57,7 @@ int direntv6_print_tree(const struct unix_filesystem *u, uint16_t inr, const cha
  * @param entry the pathname relative to the subtree
  * @return inr on success; <0 on error
  */
-int direntv6_dirlookup(const struct unix_filesystem *u, uint16_t inr, const char *entry);
+int direntv6_dirlookup(struct unix_filesystem *u, uint16_t inr, const char *entry);
 
 /* *************************************************** *
  * NOT ADDRESSED IN THIS LAB						   *

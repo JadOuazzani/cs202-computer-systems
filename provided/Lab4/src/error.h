@@ -50,15 +50,15 @@ enum error_codes {
 #ifdef DEBUG
 #define debug_printf(fmt, ...) \
     fprintf(stderr, "### function %s in %s:%d " fmt, __func__, __FILE__, __LINE__, __VA_ARGS__)
+#else
+#define debug_printf(fmt, ...) \
+    do {} while(0)
+#endif
 #define debug_var(var, fmt) debug_printf(#var ": " fmt "\n", var)
 #define debug_str(var)      debug_var(var, "%s")
 #define debug_int(var)      debug_var(var, "%d")
 #define debug_err(fmt, ...) debug_printf("ERROR: " fmt, __VA_ARGS__)
 #define debug_ret_err(err)  do { debug_err("code %d\n", err); return err; } while(0)
-#else
-#define debug_printf(fmt, ...) \
-    do {} while(0)
-#endif
 
 #define M_REQUIRE_NON_NULL(arg) \
     do { \

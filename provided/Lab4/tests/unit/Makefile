@@ -5,6 +5,7 @@ CC = clang
 
 TARGETS := mount sector inode
 TARGETS += filev6 utils
+TARGETS += direntv6
 
 CFLAGS += -g
 
@@ -30,6 +31,8 @@ filev6: unit-test-filev6
 	./unit-test-filev6
 utils: unit-test-utils
 	./unit-test-utils
+direntv6: unit-test-direntv6
+	./unit-test-direntv6
 
 # ======================================================================
 DATA_DIR ?= ../data
@@ -62,6 +65,9 @@ unit-test-filev6: unit-test-filev6.o $(SRC_DIR)/inode.o $(SRC_DIR)/sector.o $(MO
 unit-test-utils.o: unit-test-utils.c
 unit-test-utils: LDLIBS += -lcheck -lrt -pthread -lsubunit -lssl -lcrypto -lm
 unit-test-utils: unit-test-utils.o $(SRC_DIR)/inode.o $(SRC_DIR)/sector.o $(MOUNT_O) $(SRC_DIR)/filev6.o $(SRC_DIR)/u6fs_utils.o
+unit-test-direntv6.o: unit-test-direntv6.c
+unit-test-direntv6: LDLIBS += -lcheck -lrt -pthread -lsubunit -lssl -lcrypto -lm
+unit-test-direntv6: unit-test-direntv6.o $(SRC_DIR)/inode.o $(SRC_DIR)/sector.o $(MOUNT_O) $(SRC_DIR)/filev6.o $(SRC_DIR)/u6fs_utils.o $(SRC_DIR)/direntv6.o
 
 # ======================================================================
 .PHONY: clean dist-clean reset
