@@ -12,6 +12,7 @@ int main (void){
         perror("server init failed");
         return 1;
     }
+    printf("Server listening on %s:%u\n", CS202_DEFAULT_IP, CS202_DEFAULT_PORT);
 
     while (1) {
         struct sockaddr_in addr; 
