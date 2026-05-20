@@ -39,8 +39,15 @@ int inode_read(const struct unix_filesystem *u, uint16_t inr, struct inode *inod
 int inode_scan_print(const struct unix_filesystem *u)
 {
     M_REQUIRE_NON_NULL(u);
-
-    return ERR_NOT_IMPLEMENTED;
+    for (uint16_t inr = ROOT_INUMBER; inr < u->s.s_isize * INODES_PER_SECTOR; inr++){
+        struct inode inode; 
+        int err = inode_read(u, inr, &inode);
+        if (err == ERR_UNALLOCATED_INODE) continue;
+        if (err != ERR_NONE) return err; 
+        pps_printf("inode %3" PRIu16 " (%s) len %4d\n", inr, (inode.i_mode & IFDIR) ? SHORT_DIR_NAME : SHORT_FIL_NAME , inode_getsize(&inode)); 
+    }
+    
+    return ERR_NONE;
 }
 
 int inode_findsector(const struct unix_filesystem *u, const struct inode *i, int32_t file_sec_off)
