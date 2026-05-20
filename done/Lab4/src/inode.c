@@ -18,7 +18,22 @@ int inode_read(const struct unix_filesystem *u, uint16_t inr, struct inode *inod
     M_REQUIRE_NON_NULL(u);
     M_REQUIRE_NON_NULL(inode);
 
-    return ERR_NOT_IMPLEMENTED;
+    if (inr < ROOT_INUMBER || inr >= u->s.s_isize * INODES_PER_SECTOR) {
+        return ERR_INODE_OUT_OF_RANGE;
+    }
+
+    uint32_t sector = u->s.s_inode_start + (inr / INODES_PER_SECTOR) ; 
+    struct inode_sector isector; 
+    int err = sector_read(u->f, sector, &isector); 
+    if (err != ERR_NONE) return err; 
+
+    *inode = isector.inodes[inr % INODES_PER_SECTOR]; 
+
+    if (!(inode->i_mode & IALLOC)) {
+        return ERR_UNALLOCATED_INODE;
+    }
+    
+    return ERR_NONE;
 }
 
 int inode_scan_print(const struct unix_filesystem *u)
