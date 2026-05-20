@@ -70,14 +70,35 @@ int utils_cat_first_sector(struct unix_filesystem *u, uint16_t inr)
 {
     M_REQUIRE_NON_NULL(u);
 
+    struct filev6 fv6;
+    int err = filev6_open(u, inr, &fv6);
+    if (err != ERR_NONE) {
         pps_printf("filev6_open failed for inode #%d.\n", inr);
+        return err;
+    }
 
     pps_printf("\nPrinting inode #%d:\n", inr);
+    if ((err = utils_print_inode(&fv6.i_node)) != ERR_NONE) {
+        return err;
+    }
 
+    if (fv6.i_node.i_mode & IFDIR) {
         pps_printf("which is a directory.\n");
+    } else {
         pps_printf("the first sector of data of which contains:\n");
 
-    return ERR_NOT_IMPLEMENTED;
+        char buf[SECTOR_SIZE + 1];
+        memset(buf, 0, sizeof(buf));
+
+        int n = filev6_readblock(&fv6, buf);
+        if (n < 0) return n;
+
+        buf[n] = '\0';          // null-terminé pour %s
+        pps_printf("%s", buf);
+        pps_printf("----\n");
+    }
+
+    return ERR_NONE;
 }
 
 int utils_print_shafile(struct unix_filesystem *u, uint16_t inr)
