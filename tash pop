@@ -1,0 +1,203 @@
+[1mdiff --git a/done/Lab2/Step2/file_write.c b/done/Lab2/Step2/file_write.c[m
+[1mindex c60d8e9..41fc612 100644[m
+[1m--- a/done/Lab2/Step2/file_write.c[m
+[1m+++ b/done/Lab2/Step2/file_write.c[m
+[36m@@ -20,7 +20,7 @@[m [mint my_fclose(myFile file){[m
+ [m
+ void my_write(myFile output, const char* name, unsigned int age){[m
+     char buffer[NAME_MAX_SIZE + 16];[m
+[31m-    int n = snparintf(buffer, 1040, "%s %u\n", name, age); [m
+[32m+[m[32m    int n = snprintf(buffer, 1040, "%s %u\n", name, age);[m[41m [m
+     write(output, buffer, n);[m
+ }[m
+ [m
+[1mdiff --git a/done/Lab2/Step3/udp-test-client.c b/done/Lab2/Step3/udp-test-client.c[m
+[1mindex 7dd05a4..b8878da 100644[m
+[1m--- a/done/Lab2/Step3/udp-test-client.c[m
+[1m+++ b/done/Lab2/Step3/udp-test-client.c[m
+[36m@@ -2,29 +2,38 @@[m
+ #include "socket_layer.h"[m
+ #include <netinet/in.h>[m
+ #include <string.h>[m
+[32m+[m[32m#include <sys/time.h>[m[41m  [m
+[32m+[m[32m#include <time.h>[m[41m [m
+ #include <unistd.h>[m
+ [m
+[31m-int main (void){[m
+[31m-    unsigned int val; [m
+[31m-    printf("What int value do you want to send? "); [m
+[31m-    scanf("%u", &val);[m
+[32m+[m[32mtypedef struct {[m
+[32m+[m[32m    int id;[m
+[32m+[m[32m    long sec;[m
+[32m+[m[32m    long usec;[m[41m [m
+[32m+[m[32m} Probe;[m[41m [m
+ [m
+[32m+[m[32mint main (void){[m
+     int fd = get_udp_socket(5);[m
+[31m-[m
+     struct sockaddr_in server_addr = {0}; [m
+[31m-    get_server_addr(CS202_DEFAULT_IP, CS202_DEFAULT_PORT, &server_addr); [m
+[32m+[m[32m    get_server_addr(CS202_DEFAULT_IP, CS202_DEFAULT_PORT, &server_addr);[m
+[32m+[m[32m    printf("Connected to %s:%u\n", CS202_DEFAULT_IP, CS202_DEFAULT_PORT);[m
+ [m
+[31m-    char msg[64];[m
+[31m-    snprintf(msg, sizeof(msg), "%u", val);[m
+[32m+[m[32m    int id = 0;[m[41m [m
+[32m+[m[32m    while(1){[m
+[32m+[m[32m        struct timeval tv = {0};[m
+[32m+[m[32m        gettimeofday(&tv, NULL);[m[41m [m
+ [m
+[31m-    printf("Sending message to 127.0.0.1:1234: %u\n", val); [m
+[31m-    udp_send(fd, msg, strlen(msg), &server_addr); [m
+[31m-[m
+[31m-    char response[64] = {0}; [m
+[31m-    struct sockaddr_in from_addr;[m
+[31m-    udp_read(fd, response, sizeof(response)-1, &from_addr); [m
+[32m+[m[32m        Probe probe;[m[41m [m
+[32m+[m[32m        probe.id   = id;[m
+[32m+[m[32m        probe.sec  = tv.tv_sec;[m
+[32m+[m[32m        probe.usec = tv.tv_usec;[m
+[32m+[m[41m    [m
+[32m+[m[32m        udp_send(fd, (char*)&probe, sizeof(Probe), &server_addr);[m[41m [m
+[32m+[m[32m        printf("Sent Probe %d.\n", id++);[m
+[32m+[m[41m        [m
+[32m+[m[32m        usleep(5000);[m
+[32m+[m[32m    }[m
+     [m
+[31m-    printf("Received response: %s\n", response); [m
+     close(fd);[m
+     return 0;[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m}[m
+[1mdiff --git a/done/Lab2/Step3/udp-test-server.c b/done/Lab2/Step3/udp-test-server.c[m
+[1mindex d8660bf..735ea47 100644[m
+[1m--- a/done/Lab2/Step3/udp-test-server.c[m
+[1m+++ b/done/Lab2/Step3/udp-test-server.c[m
+[36m@@ -4,8 +4,14 @@[m
+ #include <arpa/inet.h>[m
+ #include <string.h>[m
+ #include <unistd.h>[m
+[32m+[m[32m#include <sys/time.h>[m[41m  [m
+[32m+[m[32m#include <time.h>[m[41m [m
+ [m
+[31m-[m
+[32m+[m[32mtypedef struct {[m
+[32m+[m[32m    int id;[m
+[32m+[m[32m    long sec;[m
+[32m+[m[32m    long usec;[m[41m [m
+[32m+[m[32m} Probe;[m
+ [m
+ int main (void){    [m
+     int fd = udp_server_init(CS202_DEFAULT_IP, CS202_DEFAULT_PORT, 0);[m
+[36m@@ -13,28 +19,41 @@[m [mint main (void){[m
+         fprintf(stderr, "Error intializing server\n");[m
+         return 1;[m
+     }[m
+[31m-[m
+     printf("Server listening on %s:%u\n", CS202_DEFAULT_IP, CS202_DEFAULT_PORT); [m
+ [m
+[32m+[m[32m    struct timeval start = {0};[m
+[32m+[m[32m    gettimeofday(&start, NULL);[m
+[32m+[m[32m    struct timeval end = {0};[m
+[32m+[m[32m    gettimeofday(&end, NULL);[m
+[32m+[m
+     while (1) {[m
+[31m-        struct sockaddr_in client_addr = {0}; [m
+[31m-        char response[64] = {0}; [m
+[31m-        int n = udp_read(fd, response, sizeof(response)-1 , &client_addr);[m
+[31m-        if (n < 0) {[m
+[31m-            fprintf(stderr, "Error reading\n");[m
+[31m-            close(fd);[m
+[31m-            return 1;[m
+[32m+[m[32m        start = end;[m[41m [m
+[32m+[m[32m        time_t total = 0;[m
+[32m+[m[32m        int nbr = 0;[m
+[32m+[m[32m        while (end.tv_sec - start.tv_sec < 1){[m
+[32m+[m[32m            struct sockaddr_in client_addr = {0};[m[41m [m
+[32m+[m[32m            Probe probe = {0};[m[41m [m
+[32m+[m[32m            int n = udp_read(fd, (char*)&probe, sizeof(probe) , &client_addr);[m
+[32m+[m[32m            if (n < 0) {[m
+[32m+[m[32m                fprintf(stderr, "Error reading\n");[m
+[32m+[m[32m                close(fd);[m
+[32m+[m[32m                return 1;[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            struct timeval tv_recv = {0};[m
+[32m+[m[32m            gettimeofday(&tv_recv, NULL);[m
+[32m+[m[41m        [m
+[32m+[m[32m            time_t dur = (tv_recv.tv_sec  - probe.sec)  * 1000000 + tv_recv.tv_usec - probe.usec ;[m[41m [m
+[32m+[m[32m            printf("Probe %d: One way Delay = %ld us.\n", probe.id, dur);[m
+[32m+[m[32m            total += dur;[m
+[32m+[m[32m            nbr += 1;[m[41m [m
+[32m+[m[41m            [m
+[32m+[m[32m            gettimeofday(&end, NULL);[m
+         }[m
+[31m-        printf("Received message from %s:%u: %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), response);[m
+[32m+[m[32m        float average = nbr > 0 ? total / (float) nbr : 0;[m
+[32m+[m[32m        printf("Average one-way delay of past 1s : %f us.\n", average);[m
+         [m
+[31m-        unsigned int val;[m
+[31m-        sscanf(response, "%u", &val); [m
+[31m-        val += 1; [m
+[31m-        snprintf(response, sizeof(response), "%u", val); [m
+[31m-        printf("Sending message to %s:%u: %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), response); [m
+[31m-        udp_send(fd, response, strlen(response), &client_addr);[m
+[31m-    }[m
+[31m-[m
+[32m+[m[32m    }[m[41m [m
+     close(fd);[m
+[31m-    return 0; [m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m    return 0;[m
+[32m+[m[32m}[m
+[1mdiff --git a/done/Makefile b/done/Makefile[m
+[1mindex bb2f962..57ad19d 100644[m
+[1m--- a/done/Makefile[m
+[1m+++ b/done/Makefile[m
+[36m@@ -5,6 +5,9 @@[m [mLDLIBS = -lssl -lcrypto[m
+ sha: sha.c[m
+ 	$(CC) $(CFLAGS) -o sha sha.c $(LDLIBS)[m
+ [m
+[32m+[m[32mstats: stats.c[m
+[32m+[m	[32mgcc -std=c99 -pedantic -g -Wall -Wextra -o stats stats.c -lm[m
+[32m+[m
+ clean:[m
+ 	rm -f sha[m
+ [m
+[1mdiff --git a/done/ex2 b/done/ex2[m
+[1mindex b72bc94..4203b42 100644[m
+Binary files a/done/ex2 and b/done/ex2 differ
+[1mdiff --git a/done/ex2.c b/done/ex2.c[m
+[1mindex 1d18360..eda9527 100644[m
+[1m--- a/done/ex2.c[m
+[1m+++ b/done/ex2.c[m
+[36m@@ -42,18 +42,10 @@[m [mvoid freq2proba(unsigned int* freq, double* proba, size_t size)[m
+   for (size_t i = 0; i < size; ++i) {[m
+     total_mass += freq[i];[m
+   }[m
+[31m-[m
+[31m-  if (total_mass != 0){[m
+[31m-    for (size_t i = 0; i < size; ++i) {[m
+[31m-      proba[i] = (double)freq[i] / total_mass;[m
+[31m-    }[m
+[31m-  } else {[m
+[31m-    for (size_t i = 0; i < size; ++i) {[m
+[31m-      proba[i] = 0; [m
+[31m-    }[m
+[31m-  }[m
+  [m
+[31m-  [m
+[32m+[m[32m  for (size_t i = 0; i < size; ++i) {[m
+[32m+[m[32m    proba[i] = total_mass == 0 ? 0 : (freq[i] / (float) total_mass);[m
+[32m+[m[32m  }[m
+ }[m
+ [m
+ // ==================================================[m
+[36m@@ -87,4 +79,3 @@[m [mint main(void)[m
+ [m
+   return 0;[m
+ }[m
+[31m-[m
