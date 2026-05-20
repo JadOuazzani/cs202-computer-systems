@@ -105,9 +105,32 @@ int utils_print_shafile(struct unix_filesystem *u, uint16_t inr)
 {
     M_REQUIRE_NON_NULL(u);
 
+    struct filev6 fv6;
+    int err = filev6_open(u, inr, &fv6);
+    if (err != ERR_NONE) {
+        return err;
+    }
+
     pps_printf("SHA inode %d: ", inr);
 
-    return ERR_NOT_IMPLEMENTED;
+    if (fv6.i_node.i_mode & IFDIR) {
+        pps_printf("DIR\n");
+        return ERR_NONE;
+    }
+
+    // Lecture jusqu'à 8 KiB (UTILS_HASHED_LENGTH) sur la pile
+    unsigned char buffer[UTILS_HASHED_LENGTH];
+    size_t total = 0;
+
+    while (total < UTILS_HASHED_LENGTH) {
+        int n = filev6_readblock(&fv6, buffer + total);
+        if (n < 0) return n;
+        if (n == 0) break;       // fin de fichier
+        total += (size_t) n;
+    }
+
+    utils_print_SHA_buffer(buffer, total);
+    return ERR_NONE;
 }
 
 int utils_print_sha_allfiles(struct unix_filesystem *u)
