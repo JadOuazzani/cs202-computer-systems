@@ -46,6 +46,11 @@ int mountv6(const char *filename, struct unix_filesystem *u)
 int umountv6(struct unix_filesystem *u)
 {
     M_REQUIRE_NON_NULL(u);
+    M_REQUIRE_NON_NULL(u->f);
+
+    if (fclose(u->f) != 0){
+        return ERR_IO; 
+    }
 
     return ERR_NONE;
 }

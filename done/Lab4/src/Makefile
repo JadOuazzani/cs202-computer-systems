@@ -21,7 +21,7 @@ TARGETS += u6fs
 # ======================================================================
 # Compiler and Link
 
-export CC = clang
+export CC = gcc-14
 
 CFLAGS += -g
 CFLAGS += -pedantic -Wall
