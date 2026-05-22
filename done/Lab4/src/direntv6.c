@@ -17,7 +17,23 @@ int direntv6_opendir(struct unix_filesystem *u, uint16_t inr, struct directory_r
     M_REQUIRE_NON_NULL(u);
     M_REQUIRE_NON_NULL(d);
 
-    return ERR_NOT_IMPLEMENTED;
+    // Ouvre le fichier associé à l'inode (propage les erreurs : inode
+    // hors limites, non alloué, etc.)
+    int err = filev6_open(u, inr, &d->fv6);
+    if (err != ERR_NONE) {
+        return err;
+    }
+
+    // L'inode doit être un répertoire
+    if (!(d->fv6.i_node.i_mode & IFDIR)) {
+        return ERR_INVALID_DIRECTORY_INODE;
+    }
+
+    // Curseur au début
+    d->cur  = 0;
+    d->last = 0;
+
+    return ERR_NONE;
 }
 
 int direntv6_readdir(struct directory_reader *d, char *name, uint16_t *child_inr)
