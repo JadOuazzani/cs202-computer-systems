@@ -5,13 +5,12 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <signal.h>
 #include <limits.h>
+#include <signal.h>
 
 #include "socket_layer.h"
 #include "error.h"
 #include "util.h"
-
 // --- ÉTAPE 5 : Système de lock par nom de fichier ---
 #ifndef NAME_MAX
 #define NAME_MAX 255
@@ -66,9 +65,7 @@ typedef struct {
 } thread_args_t;
 
 
-// --- ÉTAPE 3.2 : Fonction exécutée par chaque thread ---
 void* handle_connection(void* args) {
-    // ÉTAPE 4.2 : Masquage des signaux pour ce thread
     sigset_t mask;
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT);
@@ -79,45 +76,44 @@ void* handle_connection(void* args) {
     thread_args_t* t_args = (thread_args_t*)args;
     int active_socket = t_args->active_socket;
     struct sockaddr_in addr = t_args->cli_addr;
-    
-    // On libère la mémoire allouée dans le thread principal
     free(t_args);
 
     printf("[Thread %lu] Connexion gérée.\n", pthread_self());
 
-    char buf[64] = {0};
-    if (tcp_read(active_socket, buf, sizeof(buf)-1) < 0) {
-        perror("read failed");
-        close(active_socket);
-        return NULL;
+    // Lire le nom de fichier
+    char filename[NAME_MAX+1] = {0};
+    if (tcp_read(active_socket, filename, NAME_MAX) < 0) {
+        close(active_socket); return NULL;
     }
-    printf("Received message from %s:%u: %s\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port), buf); 
+    printf("[Thread %lu] Receiving file: %s\n", pthread_self(), filename);
 
-    // --- LOGIQUE DE FICHIER FACTICE (Pour utiliser le Mutex) ---
-    const char* dummy_filename = "mon_fichier_test.txt";
-    pthread_mutex_t* file_mutex = get_filename_mutex(dummy_filename);
-    
+    // Lock sur ce fichier
+    pthread_mutex_t* file_mutex = get_filename_mutex(filename);
     pthread_mutex_lock(file_mutex);
-    
-    // ÉTAPE 2.2 : Simulation d'un ralentissement du serveur
-    printf("[Thread %lu] Écriture en cours dans %s...\n", pthread_self(), dummy_filename);
-    sleep(5); 
-    printf("[Thread %lu] 1234 bytes wrote to \"%s\".\n", pthread_self(), dummy_filename);
-    
-    pthread_mutex_unlock(file_mutex);
-    // ------------------------------------------------------------
 
-    unsigned int val; 
-    sscanf(buf, "%u", &val); 
-    val += 1;
-    char msg[64]; 
-    snprintf(msg, sizeof(msg), "%u", val);
-    
-    // ÉTAPE 2.1 : Envoi de l'acquittement (ici, la valeur modifiée)
-    printf("Sending message to %s:%u: %u\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port), val); 
-    tcp_send(active_socket, msg, strlen(msg));
-    
-    close(active_socket); 
+    // Ouvrir et écrire le fichier
+    FILE* file = fopen(filename, "wb");
+    size_t total_written = 0;
+    char buf[1024];
+    ssize_t n;
+    while ((n = tcp_read(active_socket, buf, sizeof(buf))) > 0) {
+        fwrite(buf, 1, n, file);
+        total_written += n;
+    }
+    fclose(file);
+
+    sleep(5); // délai artificiel
+    printf("[Thread %lu] %zu bytes wrote to \"%s\".\n",
+           pthread_self(), total_written, filename);
+
+    pthread_mutex_unlock(file_mutex);
+
+    // Envoyer l'ACK (taille écrite)
+    char ack[32];
+    snprintf(ack, sizeof(ack), "%zu", total_written);
+    tcp_send(active_socket, ack, strlen(ack));
+
+    close(active_socket);
     return NULL;
 }
 
