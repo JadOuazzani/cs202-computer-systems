@@ -67,3 +67,20 @@ file_read
 
 # Fichiers de données générés
 *.dat
+
+# compiled binaries
+*.o
+.depend
+done/ex1
+done/ex2
+done/stats
+done/Lab2/Step2/file_delete
+done/Lab2/Step2/file_read
+done/Lab2/Step2/file_write
+done/Lab2/Step3/get_file
+done/Lab2/Step3/send_file
+done/Lab2/Step3/tcp-test-client
+done/Lab2/Step3/tcp-test-server
+done/Lab2/Step3/udp-test-client
+done/Lab2/Step3/udp-test-server
+done/Lab4/src/u6fs
