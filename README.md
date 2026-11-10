@@ -1,6 +1,6 @@
 # CS-202 Computer Systems: labs in C
 
-Labs for EPFL's CS-202 *Computer Systems* course (spring 2026), written in C by Jad Chahed Ouazzani and Riad Elhariry.
+Labs for EPFL's CS-202 *Computer Systems* course (spring 2026), written in C by Jad Chahed Ouazzani and Riad Elhariry
 
 The work is in [`done/`](done). The [`provided/`](provided) folder holds the course's starting code and handouts, and the [course website](https://projprogsys-epfl.github.io/) has the full specifications.
 
